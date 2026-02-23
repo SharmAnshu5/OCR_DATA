@@ -1,0 +1,95 @@
+{
+  "RO_NUMBER": {
+    "type": "regex",
+    "patterns": [
+      "RO\\s*Code\\s*[:\\-]?\\s*(\\S+)",
+      "RO\\s*No[:\\- ]*(\\S+)",
+      "RO\\s*[:\\- ]*(\\d{2,}[^\\s,]*)"
+    ],
+    "required": true
+  },
+
+  "RO_CLIENT_CODE": {
+    "type": "derived",
+    "source": "RO_NUMBER",
+    "logic": "split:/"
+  },
+
+  "RO_DATE": {
+    "type": "regex",
+    "patterns": [
+      "RO\\s*Date\\s*[:\\-]?\\s*([\\d\\-/]{6,20})",
+      "RO\\s*Date\\).*?:\\s*([\\d\\-/]{6,20})",
+      "Dated\\s*[:\\-]?\\s*([\\d\\-/]{6,20})"
+    ],
+    "required": true
+  },
+
+  "CLIENT_NAME": {
+    "type": "custom",
+    "methods": [
+      "extract_client_name_primary",
+      "extract_client_name_fallback",
+      "extract_client_name_departmental",
+      "extract_client_from_image"
+    ],
+    "validation": "is_valid_client"
+  },
+  "PACKAGE_NAME": {
+    "type": "regex",
+    "patterns": [
+      "Place\\s+of\\s+printing\\s*[:\\-]?\\s*([A-Za-z ]{2,30})",
+      "AMAR\\s+UJALA\\s*,\\s*([A-Za-z ]{2,30})"
+    ],
+    "mapping": "PACKAGE_NAME_MAP"
+  },
+  "AGENCY_NAME": {
+    "type": "lookup",
+    "source": "PACKAGE_NAME",
+    "mapping": "AGENCY_NAME_MAP"
+  },
+  "INSERT_DATE": {
+    "type": "regex",
+    "patterns": [
+      "Date of Publication[^0-9]*([0-9]{1,2}[-/][0-9]{1,2}[-/][0-9]{2,4})",
+      "Publish Date[^0-9]*([0-9]{1,2}[-/][0-9]{1,2}[-/][0-9]{2,4})"
+    ]
+  },
+  "COLOUR": {
+    "type": "custom",
+    "method": "extract_colour"
+  },
+  "AD_DIMENSIONS": {
+    "type": "custom",
+    "methods": ["extract_height", "extract_width", "calculate_size"]
+  },
+  "PAGE_PREMIUM": {
+    "type": "custom",
+    "method": "extract_page_premium"
+  },
+  "RO_RATE": {
+    "type": "regex",
+    "patterns": [
+      "Rate\\s+per\\s+Sq\\.?\\s*Cms\\.?\\s*[:\\-]?\\s*([0-9]+(?:\\.[0-9]+)?)"
+    ]
+  },
+  "RO_AMOUNT": {
+    "type": "regex",
+    "patterns": [
+      "\\bAmount\\s*[:\\- ]*(\\d+[.,]?\\d*)",
+      "RO\\s*Amount.*?:\\s*([0-9]{2,})"
+    ]
+  },
+  "RO_REMARKS": {
+    "type": "custom",
+    "method": "extract_remarks",
+    "default": "AUTO"
+  },
+  "KEY_NUMBER": {
+    "type": "regex",
+    "patterns": [
+      "([0-9]{5,}/[0-9]{2}/[0-9]{4}/[0-9]{4})"
+    ]
+  }
+}
+

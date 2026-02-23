@@ -1,0 +1,29 @@
+{
+  "RO_NUMBER": {
+    "labels": ["RO No", "Release Order", "Order No"],
+    "pattern": "[A-Z0-9/-]{5,}",
+    "required": true
+  },
+  "RO_DATE": {
+    "labels": ["RO Date", "Date"],
+    "date": true,
+    "required": true
+  },
+  "CLIENT_NAME": {
+    "labels": ["Client", "Advertiser"],
+    "required": true
+  },
+  "AGENCY_NAME": {
+    "labels": ["Agency", "Advertising Agency"],
+    "required": false
+  },
+  "RO_AMOUNT": {
+    "labels": ["Amount", "Total Amount", "Payable"],
+    "numeric": true,
+    "required": false
+  },
+  "RO_REMARKS": {
+    "labels": ["Remarks", "Note"],
+    "required": false
+  }
+}

@@ -1,0 +1,35 @@
+2026-02-21 10:41:48,282 | INFO | ==== RO LIVE RUNNER STARTED ====
+2026-02-21 10:41:48,423 | INFO | START PROCESSING | MTI2OTg2 _ Central Bureau of Communication _ CBC DDN.pdf
+2026-02-21 10:41:48,585 | ERROR | Validation Failed | Missing: ['RO_NO']
+2026-02-21 10:41:50,020 | INFO | Issue Email Sent | RO: None
+2026-02-21 10:41:50,030 | INFO | START PROCESSING | MTI2OTg2 _ Central Bureau of Communication _ CBC1 DDN.pdf
+2026-02-21 10:41:50,194 | ERROR | Validation Failed | Missing: ['RO_NO']
+2026-02-21 10:41:51,101 | INFO | Issue Email Sent | RO: None
+2026-02-21 10:41:51,101 | INFO | START PROCESSING | MTI2OTg2 _ Central Bureau of Communication _ CBC65.pdf
+2026-02-21 10:41:51,252 | ERROR | Validation Failed | Missing: ['RO_NO']
+2026-02-21 10:41:52,235 | INFO | Issue Email Sent | RO: None
+2026-02-21 10:42:50,435 | INFO | ==== RO LIVE RUNNER STARTED ====
+2026-02-21 10:42:50,585 | INFO | START PROCESSING | MTI2OTg2 _ Central Bureau of Communication _ CBC DDN.pdf
+2026-02-21 10:42:50,957 | INFO | DB INSERT SUCCESS
+2026-02-21 10:42:50,959 | INFO | DB Insert Success
+2026-02-21 10:42:50,959 | INFO | Booking Logic Passed | RO None
+2026-02-21 10:42:52,594 | INFO | SUCCESS | MTI2OTg2 _ Central Bureau of Communication _ CBC DDN.pdf
+2026-02-21 10:42:52,594 | INFO | START PROCESSING | MTI2OTg2 _ Central Bureau of Communication _ CBC1 DDN.pdf
+2026-02-21 10:42:52,773 | INFO | DB INSERT SUCCESS
+2026-02-21 10:42:52,773 | INFO | DB Insert Success
+2026-02-21 10:42:52,773 | INFO | Booking Logic Passed | RO None
+2026-02-21 10:42:53,735 | INFO | SUCCESS | MTI2OTg2 _ Central Bureau of Communication _ CBC1 DDN.pdf
+2026-02-21 10:42:53,737 | INFO | START PROCESSING | MTI2OTg2 _ Central Bureau of Communication _ CBC65.pdf
+2026-02-21 10:42:53,890 | INFO | DB INSERT SUCCESS
+2026-02-21 10:42:53,890 | INFO | DB Insert Success
+2026-02-21 10:42:53,890 | INFO | Booking Logic Passed | RO None
+2026-02-21 10:42:54,802 | INFO | SUCCESS | MTI2OTg2 _ Central Bureau of Communication _ CBC65.pdf
+2026-02-23 11:35:18,180 | INFO | ==== RO LIVE RUNNER STARTED ====
+2026-02-23 11:35:28,657 | INFO | START PROCESSING | MTI2OTg2 _ Central Bureau of Communication _ CBC5 DDN.pdf
+2026-02-23 11:35:29,300 | INFO | DB INSERT SUCCESS
+2026-02-23 11:35:29,300 | INFO | DB Insert Success
+2026-02-23 11:35:29,300 | INFO | Booking Logic Passed | RO None
+2026-02-23 11:35:31,167 | INFO | SUCCESS | MTI2OTg2 _ Central Bureau of Communication _ CBC5 DDN.pdf
+2026-02-23 11:36:01,207 | INFO | START PROCESSING | 40693-4 Size 8x8.pdf
+2026-02-23 11:36:01,409 | ERROR | Validation Failed | Missing: ['AGENCY_NAME', 'CLIENT_NAME', 'CLIENT_CODE', 'RO_NUMBER', 'RO_DATE', 'INSERT_DATE']
+2026-02-23 11:36:02,793 | INFO | Issue Email Sent | RO: None
