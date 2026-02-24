@@ -21,6 +21,7 @@ PDF
 The OCR engine uses layout positioning and contextual grouping to identify RO fields accurately.
 
 ---
+```
 ┌───────────────┬──────────────────────┐
 │ Left menu     │ RO Code / RO Date    │
 │ navigation    │ Client Detail        │
@@ -28,11 +29,11 @@ The OCR engine uses layout positioning and contextual grouping to identify RO fi
 ├───────────────┴──────────────────────┤
 │ Details of Advertisement             │
 └──────────────────────────────────────┘
-
+```
 ---
 
 ## 📂 Project Structure
-
+```
 ro-intelligence/
 │
 ├── ingestion/
@@ -70,7 +71,7 @@ ro-intelligence/
 │   └── ro_pipeline_dag.py
 │
 └── main.py
-
+```
 ---
 
 ## ⚙️ Technology Stack
