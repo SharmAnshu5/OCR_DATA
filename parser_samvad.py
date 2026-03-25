@@ -151,6 +151,12 @@ def extract_from_filename(filename: str) -> dict:
     
     return fields
 
+    discount_match = re.search( r'and\s*(\d+(?:\.\d+)?)%\s*from\s*Media\s*Houses', text,re.IGNORECASE)
+        if discount_match:
+            fields["AD_DISCOUNT"] = float(discount_match.group(1))
+        else:
+            fields["AD_DISCOUNT"] = 0.0
+
 def extract_fields(text: str) -> dict:
     mapping = load_mapping()
     fields = {
@@ -290,13 +296,14 @@ def extract_fields(text: str) -> dict:
       
     if "AGENCY_NAME" in fields and package_matches:
         fields["AGENCY_NAME"] = fields["AGENCY_NAME"] + ", " + package_matches[0]    
-    
+
+    Newspaper_Name = ", ".join([f"Amar Ujala, {e}" for e in package_matches])
     remark_match = re.search( r'Remarks?\s*(.*?)\s*B\.\s*Advertisement',text,re.IGNORECASE | re.DOTALL)
     if remark_match:
         remark = remark_match.group(1)
         remark = remark.replace('\n', ' ')
         remark = re.sub(r'\s+', ' ', remark).strip()
-        fields["RO_REMARKS"] = remark.upper()
+        fields["RO_REMARKS"] = Newspaper_Name + ", " + remark.upper() + ", " + fields["SIZE"]
     else:
         fields["RO_REMARKS"] = ""        
         
