@@ -176,7 +176,8 @@ def extract_from_filename(filename: str) -> dict:
         "BOOKING_CENTER": "",
         "RO_REMARKS": "",
         "EXTRACTED_TEXT": "",
-        "POSITIONING": ""
+        "POSITIONING": "",
+        "AD_DISCOUNT": ""
     }
     
     try:
@@ -244,7 +245,8 @@ def extract_fields(text: str) -> dict:
     "BOOKING_CENTER": "",
     "RO_REMARKS": "",
     "EXTRACTED_TEXT": "",
-    "POSITIONING": ""
+    "POSITIONING": "",
+    "AD_DISCOUNT": ""
     }
     
     agency_match = re.search(r'([A-Z\s\n]{30,})\s+ADVERTISEMENT RELEASE ORDER',text)
@@ -428,6 +430,12 @@ def extract_fields(text: str) -> dict:
         fields["RO_AMOUNT"] = float(final_amount)    
 
     fields["EXTRACTED_TEXT"] = re.sub(r"\s+", " ", text).strip()
+
+    discount_match = re.search( r'and\s*(\d+(?:\.\d+)?)%\s*from\s*Media\s*Houses', text,re.IGNORECASE)
+    if discount_match:
+        fields["AD_DISCOUNT"] = float(discount_match.group(1))
+    else:
+        fields["AD_DISCOUNT"] = 0.0
     
     return fields
 
