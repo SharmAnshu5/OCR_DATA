@@ -3,6 +3,7 @@ import sys
 import re
 import json
 import logging
+from difflib import SequenceMatcher
 import pytesseract
 import pandas as pd
 from pathlib import Path
@@ -49,6 +50,64 @@ if not master_df.empty:
             master_df["MASTER_CLIENT_NAME"]
         )
     )
+
+def normalize_client_text(text: str) -> str:
+    """Normalize client names so common format differences still match."""
+    if not text:
+        return ""
+
+    n = str(text).upper()
+    n = re.sub(r"\[[^\]]*\]", " ", n)
+    n = re.sub(r"\bM/O\b", "MINISTRY OF", n)
+    n = re.sub(r"\bDEPT\.?\b", "DEPARTMENT", n)
+    n = n.replace("&", " AND ")
+    n = re.sub(r"\bAND\b", " AND ", n)
+    n = re.sub(r"[^A-Z0-9\s]", " ", n)
+    n = re.sub(r"\s+", " ", n)
+    return n.strip()
+
+
+def resolve_client_match(ro_client_name: str):
+    """Return the best CLIENT_NAME/CLIENT_CODE for a SAMVAD RO client string."""
+    if not ro_client_name or master_df.empty:
+        return "", ""
+
+    raw_query = re.sub(r"\s+", " ", str(ro_client_name)).strip().upper()
+    norm_query = normalize_client_text(ro_client_name)
+
+    exact_code = client_code_map.get(raw_query, "")
+    exact_name = client_name_map.get(raw_query, "")
+    if exact_code or exact_name:
+        return exact_name, exact_code
+
+    best_score = -1.0
+    best_name = ""
+    best_code = ""
+
+    for _, row in master_df.iterrows():
+        for candidate in (row.get("Ro Client Name", ""), row.get("MASTER_CLIENT_NAME", "")):
+            cand_norm = normalize_client_text(candidate)
+            if not cand_norm:
+                continue
+
+            if norm_query == cand_norm or norm_query in cand_norm or cand_norm in norm_query:
+                return row.get("MASTER_CLIENT_NAME", ""), row.get("MASTER_CLIENT_CODE", "")
+
+            seq_score = SequenceMatcher(None, norm_query, cand_norm).ratio()
+            query_tokens = set(norm_query.split())
+            cand_tokens = set(cand_norm.split())
+            token_score = len(query_tokens & cand_tokens) / max(len(query_tokens), len(cand_tokens), 1)
+            score = max(seq_score, token_score)
+
+            if score > best_score:
+                best_score = score
+                best_name = row.get("MASTER_CLIENT_NAME", "")
+                best_code = row.get("MASTER_CLIENT_CODE", "")
+
+    if best_score >= 0.75:
+        return best_name, best_code
+
+    return "", ""
 
 def load_mapping(mapping_path=None):
     if not mapping_path:
@@ -133,16 +192,20 @@ def extract_from_filename(filename: str) -> dict:
         # Extract Ad Size (format: WxH)
         size_match = re.search(r"Size\s+(\d+)\s*x\s*(\d+)", name_without_ext, re.IGNORECASE)
         if size_match:
-            dim1 = int(size_match.group(1))
-            dim2 = int(size_match.group(2))
-            fields["AD_WIDTH"] = str(dim1)
-            fields["AD_HEIGHT"] = str(dim2)
-            fields["AD_SIZE"] = str(dim1 * dim2)  # Calculate area
+            # Calculate the total area from the filename (e.g., 8x8 = 64)
+            width_from_name = int(size_match.group(1))
+            height_from_name = int(size_match.group(2))
+            total_size = width_from_name * height_from_name
+
+            # Set fields according to the requirement
+            fields["AD_HEIGHT"] = "1"
+            fields["AD_WIDTH"] = "1"
+            fields["AD_SIZE"] = str(total_size)
         
         # Default values for SAMVAD
         fields["AD_CAT"] = "GO2"
         fields["PRODUCT"] = "DISPLAY-MISC"
-        fields["BOOKING_CENTER"] = "NA1"
+        fields["EXECUTIVE_NAME"] = "DIRECT CLIENT"
         
         logger.info(f"Extracted from filename: KEY={fields['KEY_NUMBER']}, SIZE={fields['AD_SIZE']}")
         
@@ -150,12 +213,6 @@ def extract_from_filename(filename: str) -> dict:
         logger.warning(f"Error parsing filename {filename}: {e}")
     
     return fields
-
-    discount_match = re.search( r'and\s*(\d+(?:\.\d+)?)%\s*from\s*Media\s*Houses', text,re.IGNORECASE)
-        if discount_match:
-            fields["AD_DISCOUNT"] = float(discount_match.group(1))
-        else:
-            fields["AD_DISCOUNT"] = 0.0
 
 def extract_fields(text: str) -> dict:
     mapping = load_mapping()
@@ -195,7 +252,7 @@ def extract_fields(text: str) -> dict:
         agency_block = agency_match.group(1)
         agency_block = agency_block.replace("\n", " ")
         agency_block = re.sub(r"\s+", " ", agency_block).strip()
-        fields["AGENCY_NAME"] = agency_block   
+        # fields["AGENCY_NAME"] = agency_block   
     
     client_match = re.search(r'Dept\.?\s*to\s*which\s*advt\.?\s*relates\s*(.*?)\s*(?:\n|Office|Managing|Director|Under)',
     text,re.IGNORECASE | re.DOTALL)
@@ -268,13 +325,18 @@ def extract_fields(text: str) -> dict:
     if has_C_in_ro or is_multi_department:
         if booking_centre == "CHANDIGARH":
             fields["AGENCY_CODE"] = "SA1254SAM190"
+            fields["AGENCY_NAME"] = "SAMVAD[M]"
         else:
             fields["AGENCY_CODE"] = "SA1463SAM214"
+            fields["AGENCY_NAME"] = "SAMVAD - M"
     else:
         if booking_centre == "CHANDIGARH":
             fields["AGENCY_CODE"] = "SA329SAM81"
+            fields["AGENCY_NAME"] = "SAMVAD [DPR HARYANA],PANCHKULA"
         else:
-            fields["AGENCY_CODE"] = "SA1462SAM213"    
+            fields["AGENCY_CODE"] = "SA1462SAM213SA1462SAM213"
+            fields["AGENCY_NAME"] = "SAMVAD - DPR HARYANA"
+             
     
     # FIX: Handle None values in packages list
     package_matches = re.findall(r'Amar Ujala,\s*([A-Za-z ]+)', text, re.IGNORECASE)
@@ -296,16 +358,16 @@ def extract_fields(text: str) -> dict:
       
     if "AGENCY_NAME" in fields and package_matches:
         fields["AGENCY_NAME"] = fields["AGENCY_NAME"] + ", " + package_matches[0]    
-
+    
     Newspaper_Name = ", ".join([f"Amar Ujala, {e}" for e in package_matches])
     remark_match = re.search( r'Remarks?\s*(.*?)\s*B\.\s*Advertisement',text,re.IGNORECASE | re.DOTALL)
     if remark_match:
         remark = remark_match.group(1)
         remark = remark.replace('\n', ' ')
         remark = re.sub(r'\s+', ' ', remark).strip()
-        fields["RO_REMARKS"] = Newspaper_Name + ", " + remark.upper() + ", " + fields["SIZE"]
+        fields["RO_REMARKS"] = Newspaper_Name + ", " + remark.upper() + ", " + fields["AD_SIZE"]
     else:
-        fields["RO_REMARKS"] = ""        
+        fields["RO_REMARKS"] = ""      
         
     pub_date_match = re.search(r"Publication\s*Date.*?(\d{2}-\d{2}-\d{4})",text, re.IGNORECASE | re.DOTALL)
     if pub_date_match:
@@ -325,10 +387,8 @@ def extract_fields(text: str) -> dict:
         fields["RO_DATE"] = ""
 
     fields["AD_CAT"] = "GO2"
-    fields["PRODUCT"] = "DISPLAY-MISC"
-    fields["BRAND"] = "None"
-    fields["Executive"] = "None"
-    fields["RO_CLIENT_CODE"] = "None"
+    fields["PRODUCT"] = "DISPLAY - MISCELLANEOUS"
+    fields["BRAND"] = "NONE"
     
     category = fields.get("CATEGORY", "")
     mapped_subcat = ""
@@ -339,18 +399,7 @@ def extract_fields(text: str) -> dict:
             mapped_subcat = category_to_subcat.get(key, "")
             break
     
-    fields["AD_SUBCAT"] = mapped_subcat
-    
-    size_match = re.search(r'/\s*([\d.]+)\s*\(Sq\.?\s*cm', text, re.IGNORECASE)
-    if size_match:
-        try:
-            fields["AD_HEIGHT"] = 1
-            fields["AD_WIDTH"] = float(size_match.group(1))
-            fields["AD_SIZE"] = fields["AD_HEIGHT"] * fields["AD_WIDTH"]
-        except (ValueError, TypeError):
-            fields["AD_HEIGHT"] = ""
-            fields["AD_WIDTH"] = ""
-            fields["AD_SIZE"] = ""
+    fields["AD_SUBCAT"] = mapped_subcat  
 
     color_match = re.search(r'(?:/(Any Page|Front Page))?\s*\n\s*(B&W|Colored)',text,re.IGNORECASE | re.DOTALL)
     if color_match:
